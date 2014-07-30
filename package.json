@@ -1,0 +1,26 @@
+{
+  "name": "document-change-observer",
+  "version": "0.0.0",
+  "description": "Observers an HTML document (or any element) for added or removed nodes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digidem/document-change-observer.git"
+  },
+  "keywords": [
+    "MutationObserver"
+  ],
+  "author": "Gregor MacLennan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/digidem/document-change-observer/issues"
+  },
+  "homepage": "https://github.com/digidem/document-change-observer",
+  "devDependencies": {
+    "browserify": "^5.9.1",
+    "uglify-js": "^2.4.15"
+  }
+}
