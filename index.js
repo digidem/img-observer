@@ -64,7 +64,7 @@ module.exports = function(root, tagName) {
 
     // Loops through a node list and returns all the nodes that match
     // a tag name.
-    function filterNodes(nodeList, tagName, fn) {
+    function filterNodes(nodeList, tagName) {
         var matched = [];
         for (var i = 0; i < nodeList.length; ++i) {
             // Only check node nodes, not text or script nodes.
@@ -75,6 +75,7 @@ module.exports = function(root, tagName) {
                 // If the node has no children, continue to next node
                 if (!nodeList[i].children.length) continue;
             }
+            
             // Check for any children
             var imgs = nodeList[i].getElementsByTagName(tagName);
             for (var j = 0; j < imgs.length; ++j) {
@@ -84,7 +85,6 @@ module.exports = function(root, tagName) {
         return matched;
     }
 
-    // 
     observer.observe(root, {
         // Required, and observes additions
         // or deletion of child nodes
