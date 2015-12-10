@@ -1,17 +1,17 @@
 {
-  "name": "document-change-observer",
+  "name": "img-observer",
   "version": "0.0.0",
   "description": "Observers an HTML document (or any element) for added or removed nodes",
   "main": "index.js",
   "scripts": {
-    "build": "browserify index.js --standalone DocumentChangeObserver -o dist/document_change_observer.js",
-    "postbuild": "uglifyjs dist/document_change_observer.js -c -m -o dist/document_change_observer.min.js",
+    "build": "browserify index.js --standalone ImgObserver -o dist/img_observer.js",
+    "postbuild": "uglifyjs dist/img_observer.js -c -m -o dist/img_observer.min.js",
     "lint": "standard index.js",
-    "test": "npm run lint"
+    "test": "npm run lint && node test.js -b"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/digidem/document-change-observer.git"
+    "url": "https://github.com/digidem/img-observer.git"
   },
   "keywords": [
     "MutationObserver"
@@ -19,12 +19,17 @@
   "author": "Gregor MacLennan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/digidem/document-change-observer/issues"
+    "url": "https://github.com/digidem/img-observer/issues"
   },
-  "homepage": "https://github.com/digidem/document-change-observer",
+  "homepage": "https://github.com/digidem/img-observer",
   "devDependencies": {
     "browserify": "^12.0.1",
+    "prova": "^2.1.2",
     "standard": "^5.4.1",
-    "uglify-js": "^2.6.1"
+    "uglify-js": "^2.6.1",
+    "watchify": "^3.6.1"
+  },
+  "dependencies": {
+    "inherits": "^2.0.1"
   }
 }

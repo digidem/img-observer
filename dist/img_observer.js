@@ -1,104 +1,124 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var n;"undefined"!=typeof window?n=window:"undefined"!=typeof global?n=global:"undefined"!=typeof self&&(n=self),n.DocumentChangeObserver=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ImgObserver = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 // Monitors any nodes matching `tagName` added to or removed to a document node
-// (defaults to `document.body`), and emits an `added` or `removed` 
+// (defaults to `document.body`), and emits an `added` or `removed`
 // event passing an array of all the nodes added or removed.
+var inherits = require('inherits')
+var EventEmitter = require('events')
 
-var EventEmitter = require('events').EventEmitter;
+var mutationObserverInitOptions = {
+  // Required, and observes additions or deletion of child nodes
+  childList: true,
+  // Observes the addition or deletion of “grandchild” nodes
+  subtree: true
+}
+var idCounter = 0
+/**
+ * Attaches a unique id to a given node/object, or returns the id.
+ * We need to track the ID of each node added and removed,
+ * because a single mutation event might include the same node
+ * being added and removed
+ * @param {object} node
+ * @return {string} returns unique id of object
+ */
+function id (node) {
+  return node.__imgobserverid__ || (node.__imgobserverid__ = ++idCounter + '')
+}
 
-module.exports = function(root, tagName) {
-    root = root || document.body;
-    tagName = tagName.toUpperCase() || "DIV";
-    var event = new EventEmitter();
+function ImgObserver (root) {
+  if (!(this instanceof ImgObserver)) return new ImgObserver(root)
+  this._root = root || document.body
+  if (!(this._root instanceof window.Node)) throw new Error('root must be a Node https://developer.mozilla.org/en-US/docs/Web/API/Node')
+  var tagName = 'IMG'
+  var self = this
 
-    // If the browser does not support MutationObserver, returns `undefined`
-    if (!window.MutationObserver) return;
+  // If the browser does not support MutationObserver, returns `undefined`
+  var MutationObserver = window.MutationObserver
+  if (!MutationObserver) return
 
-    // Create a new observer
-    var observer = new MutationObserver(function(mutations) {
-        var key,
-            nodesById = {
-                added: {},
-                removed: {}
-            },
-            addedNodes = [],
-            removedNodes = [],
-            idCounter = 0;
+  // Create a new observer
+  this._observer = new MutationObserver(function (mutations) {
+    var imgMutations = processMutations(mutations, tagName)
+    // If any matching nodes were added or removed, emit an event
+    // with an array of the nodes.
+    if (imgMutations.addedNodes.length) self.emit('added', imgMutations.addedNodes)
+    if (imgMutations.removedNodes.length) self.emit('removed', imgMutations.removedNodes)
+  })
+  this.connect(this._root)
+  EventEmitter.call(this)
+}
 
-        // We need to track the ID of each node added and removed,
-        // because a single mutation event might include the same node
-        // being added and removed
-        function id(node) {
-            return node.__imgobserverid__ || (node.__imgobserverid__ = ++idCounter + '');
-        }
+inherits(ImgObserver, EventEmitter)
 
-        // The mutations observer can be called with several mutations at a time
-        mutations.forEach(function(mutation) {
-            // Check whether any added nodes are an IMG tag, and if so
-            // add them to the list of added nodes, and delete them from 
-            // the list of removed nodes.
-            filterNodes(mutation.addedNodes, tagName).forEach(function(node) {
-                nodesById.added[id(node)] = node;
-                delete nodesById.removed[id(node)];
-            });
-            // Similarly check the removed IMG tags
-            filterNodes(mutation.removedNodes, tagName).forEach(function(node) {
-                nodesById.removed[id(node)] = node;
-                delete nodesById.added[id(node)];
-            });
-        });
+ImgObserver.prototype.disconnect = function () {
+  this._observer.disconnect()
+}
 
-        // Flatten the list of added and removed matching nodes to arrays
-        for (key in nodesById.added) {
-            if (!nodesById.added.hasOwnProperty(key)) continue;
-            addedNodes.push(nodesById.added[key]);
-        }
-        for (key in nodesById.removed) {
-            if (!nodesById.removed.hasOwnProperty(key)) continue;
-            removedNodes.push(nodesById.removed[key]);
-        }
+ImgObserver.prototype.connect = function (root) {
+  root = root || this._root
+  this._observer.observe(root, mutationObserverInitOptions)
+}
 
-        // If any matching nodes were added or removed, emit an event
-        // with an array of the nodes.
-        if (addedNodes.length) event.emit('added', addedNodes);
-        if (removedNodes.length) event.emit('removed', removedNodes);
-    });
+var processMutations = ImgObserver._processMutations = function (mutations, tagName) {
+  var nodesById = {added: {}, removed: {}}
 
-    // Loops through a node list and returns all the nodes that match
-    // a tag name.
-    function filterNodes(nodeList, tagName, fn) {
-        var matched = [];
-        for (var i = 0; i < nodeList.length; ++i) {
-            // Only check node nodes, not text or script nodes.
-            if (nodeList[i].nodeType !== Node.ELEMENT_NODE) continue;
-            // Check if the root node is what we are looking for
-            if (nodeList[i].tagName === tagName) {
-                matched.push(nodeList[i]);
-                // If the node has no children, continue to next node
-                if (!nodeList[i].children.length) continue;
-            }
-            // Check for any children
-            var imgs = nodeList[i].getElementsByTagName(tagName);
-            for (var j = 0; j < imgs.length; ++j) {
-                matched.push(imgs[j]);
-            }
-        }
-        return matched;
+  // The mutations observer can be called with several mutations at a time
+  mutations.forEach(function (mutation) {
+    // Check whether any added nodes are an IMG tag, and if so
+    // add them to the list of added nodes, and delete them from
+    // the list of removed nodes.
+    filterNodeList(mutation.addedNodes, tagName).forEach(function (node) {
+      nodesById.added[id(node)] = node
+      delete nodesById.removed[id(node)]
+    })
+    // Similarly check the removed IMG tags
+    filterNodeList(mutation.removedNodes, tagName).forEach(function (node) {
+      nodesById.removed[id(node)] = node
+      delete nodesById.added[id(node)]
+    })
+  })
+
+  var addedNodes = Object.keys(nodesById.added).map(function (id) {
+    return nodesById.added[id]
+  })
+  var removedNodes = Object.keys(nodesById.removed).map(function (id) {
+    return nodesById.removed[id]
+  })
+  return {
+    addedNodes: addedNodes,
+    removedNodes: removedNodes
+  }
+}
+
+/**
+ * For a given nodeList filter nodes with `tagName` or children with `tagName`
+ * @param {NodeList} nodeList
+ * @param {string} tagName  tag to match
+ * @return {array} Array of matched nodes
+ */
+var filterNodeList = ImgObserver._filterNodeList = function (nodeList, tagName) {
+  var matched = []
+  for (var i = 0; i < nodeList.length; ++i) {
+    // Only check node nodes, not text or script nodes.
+    if (nodeList[i].nodeType !== window.Node.ELEMENT_NODE) continue
+    // Check if the root node is what we are looking for
+    if (nodeList[i].tagName === tagName) {
+      matched.push(nodeList[i])
+      // If the node has no children, continue to next node
+      if (!nodeList[i].children.length) continue
     }
 
-    // 
-    observer.observe(root, {
-        // Required, and observes additions
-        // or deletion of child nodes
-        childList: true,
-        // Observes the addition or deletion
-        // of “grandchild” nodes
-        subtree: true
-    });
+    // Check for any children
+    var children = nodeList[i].getElementsByTagName(tagName)
+    for (var j = 0; j < children.length; ++j) {
+      matched.push(children[j])
+    }
+  }
+  return matched
+}
 
-    return event;
-};
+module.exports = ImgObserver
 
-},{"events":2}],2:[function(require,module,exports){
+},{"events":2,"inherits":3}],2:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -158,10 +178,8 @@ EventEmitter.prototype.emit = function(type) {
       er = arguments[1];
       if (er instanceof Error) {
         throw er; // Unhandled 'error' event
-      } else {
-        throw TypeError('Uncaught, unspecified "error" event.');
       }
-      return false;
+      throw TypeError('Uncaught, unspecified "error" event.');
     }
   }
 
@@ -184,18 +202,11 @@ EventEmitter.prototype.emit = function(type) {
         break;
       // slower
       default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
+        args = Array.prototype.slice.call(arguments, 1);
         handler.apply(this, args);
     }
   } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
+    args = Array.prototype.slice.call(arguments, 1);
     listeners = handler.slice();
     len = listeners.length;
     for (i = 0; i < len; i++)
@@ -233,7 +244,6 @@ EventEmitter.prototype.addListener = function(type, listener) {
 
   // Check for listener leak
   if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
     if (!isUndefined(this._maxListeners)) {
       m = this._maxListeners;
     } else {
@@ -355,7 +365,7 @@ EventEmitter.prototype.removeAllListeners = function(type) {
 
   if (isFunction(listeners)) {
     this.removeListener(type, listeners);
-  } else {
+  } else if (listeners) {
     // LIFO order
     while (listeners.length)
       this.removeListener(type, listeners[listeners.length - 1]);
@@ -376,15 +386,20 @@ EventEmitter.prototype.listeners = function(type) {
   return ret;
 };
 
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
 EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
+  return emitter.listenerCount(type);
 };
 
 function isFunction(arg) {
@@ -401,6 +416,31 @@ function isObject(arg) {
 
 function isUndefined(arg) {
   return arg === void 0;
+}
+
+},{}],3:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
 }
 
 },{}]},{},[1])(1)
