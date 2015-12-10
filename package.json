@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "browserify index.js --standalone DocumentChangeObserver -o dist/document_change_observer.js",
+    "postbuild": "uglifyjs dist/document_change_observer.js -c -m -o dist/document_change_observer.min.js",
   },
   "repository": {
     "type": "git",
