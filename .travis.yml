@@ -1,5 +1,4 @@
 language: node_js
 node_js:
 - '0.10'
-dd:
-  secure: a1+lTF7ILA+Rf46W8SXmLE84o8j4lr5F1rQLxEQmfpaVUF0KqAWVzEYZCBN5say6CclUXJoxHLHtxrzBPIaZFEKggF/miJRTvCYhHZQTKeDbpaaOPvby0qIuUiEM5CXvyQAVdSpV0+K5cZJgEHjO1lQunRmXMOyd9VaVLP4fXuA=
+sudo: false
