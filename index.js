@@ -9,7 +9,11 @@ var mutationObserverInitOptions = {
   childList: true,
   // Observes the addition or deletion of “grandchild” nodes
   subtree: true,
+  // Observe mutations to target's attributes
+  attributes: true,
+  // record  target's attribute value before the mutation
   attributeOldValue: true,
+  // Only observe changes to `src` attribute
   attributeFilter: ['src']
 }
 var idCounter = 0
