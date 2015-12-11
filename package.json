@@ -1,7 +1,7 @@
 {
   "name": "document-change-observer",
-  "version": "0.0.0",
-  "description": "Observers an HTML document (or any element) for added or removed nodes",
+  "version": "0.0.1",
+  "description": "Deprecated - see img-observer",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
