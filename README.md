@@ -1,12 +1,14 @@
-Document Change Observer
+ImgObserver
 ========================
 
-Monitors an HTML document for added or removed nodes, dispatching 'added' and 'removed' events with an array or added or removed nodes. Developed to monitor `img` elements being added to or removed from the page, but can match any tagName. In the future it should match by a valid [selector](http://www.w3.org/TR/selectors/#selectors) but for now it just matches an exact tagName match.
+Monitors an HTML document for added or removed `img` nodes, dispatching 'added' and 'removed' events with an array or added or removed `img` tags, and 'changed' events with an array of img tags with a changed `src` attribute.
 
-#### Usage Browserify
+A previous version of this library was named `document-change-observer` and was originally a more generic wrapper for `MutationObserver`, but for that use [mutation-summary](https://github.com/rafaelw/mutation-summary)
+
+### Usage Browserify
 
 ```javascript
-var observer = require('document-change-observer')(document.body, 'IMG');
+var observer = require('img-observer')(document.body);
 
 observer.on('added', function(imgs) {
     // ... do something with array of added `img` elements
@@ -15,19 +17,34 @@ observer.on('added', function(imgs) {
 observer.on('removed', function(imgs) {
     // ... do comething with array of removed `img` elements
 })
+
+observer.on('changed', function(imgs) {
+    // ... do comething with array of `img` elements with changed `src` attributes
+})
 ```
 
-#### Standalone usage
+### Standalone usage
 
 ```html
-<script src="dist/document-change-observer.js></script>
+<script src="dist/img-observer.js></script>
 
 <script>
-var observer = DocumentChangeObserver(document.body, 'IMG');
+var observer = ImgObserver(document.body);
 </script>
 ```
 
-### To Do
+### ImgObserver(node)
 
-- [ ] Filter changes by selector, not just by tagname
-- [ ] Add method to turn off the observer
+Returns an observer that listens for mutations of img elements that are children of `node`. Is an instance of [EventEmitter](https://nodejs.org/api/events.html#events_class_events_eventemitter).
+
+### observer.disconnect()
+
+Stops listening for DOM mutations, but does not remove event listeners.
+
+### observer.connect()
+
+Starts listening for DOM mutations again.
+
+### observer.removeAllListeners()
+
+Remove all listeners attached to the observer.

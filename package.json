@@ -1,7 +1,7 @@
 {
   "name": "img-observer",
-  "version": "0.0.0",
-  "description": "Observers an HTML document (or any element) for added or removed nodes",
+  "version": "1.0.0",
+  "description": "Observes added and removed `img` tags and changed `src` attributes",
   "main": "index.js",
   "scripts": {
     "build": "browserify index.js --standalone ImgObserver -o dist/img_observer.js",
