@@ -28,7 +28,7 @@ observer.on('changed', function(imgs) {
 ### Standalone usage
 
 ```html
-<script src="dist/img-observer.js></script>
+<script src="dist/img-observer.js"></script>
 
 <script>
 var observer = ImgObserver(document.body);
