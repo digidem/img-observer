@@ -8,7 +8,9 @@ var mutationObserverInitOptions = {
   // Required, and observes additions or deletion of child nodes
   childList: true,
   // Observes the addition or deletion of “grandchild” nodes
-  subtree: true
+  subtree: true,
+  attributeOldValue: true,
+  attributeFilter: ['src']
 }
 var idCounter = 0
 /**
@@ -41,6 +43,7 @@ function ImgObserver (root) {
     // with an array of the nodes.
     if (imgMutations.addedNodes.length) self.emit('added', imgMutations.addedNodes)
     if (imgMutations.removedNodes.length) self.emit('removed', imgMutations.removedNodes)
+    if (imgMutations.changedNodes.length) self.emit('changed', imgMutations.changedNodes)
   })
   this.connect(this._root)
   EventEmitter.call(this)
@@ -58,10 +61,16 @@ ImgObserver.prototype.connect = function (root) {
 }
 
 var processMutations = ImgObserver._processMutations = function (mutations, tagName) {
-  var nodesById = {added: {}, removed: {}}
+  var nodesById = {added: {}, removed: {}, changed: {}}
 
   // The mutations observer can be called with several mutations at a time
   mutations.forEach(function (mutation) {
+    if (mutation.type === 'attributes') {
+      if (mutation.oldValue !== mutation.target.src) {
+        nodesById.changed[id(mutation.target)] = mutation.target
+      }
+      return
+    }
     // Check whether any added nodes are an IMG tag, and if so
     // add them to the list of added nodes, and delete them from
     // the list of removed nodes.
@@ -73,9 +82,13 @@ var processMutations = ImgObserver._processMutations = function (mutations, tagN
     filterNodeList(mutation.removedNodes, tagName).forEach(function (node) {
       nodesById.removed[id(node)] = node
       delete nodesById.added[id(node)]
+      delete nodesById.changed[id(node)]
     })
   })
 
+  var changedNodes = Object.keys(nodesById.changed).map(function (id) {
+    return nodesById.changed[id]
+  })
   var addedNodes = Object.keys(nodesById.added).map(function (id) {
     return nodesById.added[id]
   })
@@ -84,6 +97,7 @@ var processMutations = ImgObserver._processMutations = function (mutations, tagN
   })
   return {
     addedNodes: addedNodes,
+    changedNodes: changedNodes,
     removedNodes: removedNodes
   }
 }

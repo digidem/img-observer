@@ -143,10 +143,10 @@ test('delayed appending multiple', function (t) {
   for (var i = 0; i < 3; i++) {
     window.setTimeout(function (i) {
       imgNodes[i] = div.appendChild(d.createElement('img'))
-    }.bind(null, i), (i + 1) * 200)
+    }.bind(null, i), (i + 1) * 30)
     window.setTimeout(function (i) {
       div.removeChild(imgNodes[i])
-    }.bind(null, i), (i + 4) * 200)
+    }.bind(null, i), (i + 4) * 30)
   }
 
   observer.on('added', function (imgs) {
@@ -162,4 +162,43 @@ test('delayed appending multiple', function (t) {
     })
   })
   t.once('end', cleanup.bind(null, observer))
+})
+
+test('src changes', function (t) {
+  t.plan(1)
+  var observer = ImgObserver()
+  var img = d.body.appendChild(d.createElement('img'))
+  observer.on('changed', function (imgs) {
+    t.equal(imgs[0], img, 'changing src triggers changed event')
+  })
+  img.src = 'test.jpg'
+  t.once('end', cleanup.bind(null, observer, img))
+})
+
+test('multiple src changes', function (t) {
+  t.plan(1)
+  var observer = ImgObserver()
+  var imgNodes = []
+  for (var i = 0; i < 3; i++) {
+    imgNodes[i] = d.body.appendChild(d.createElement('img'))
+  }
+  observer.on('changed', function (imgs) {
+    t.deepEqual(imgs, imgNodes, 'changing src triggers changed event')
+  })
+  for (i = 0; i < 3; i++) {
+    imgNodes[i].src = 'test.jpg'
+  }
+  t.once('end', cleanup.bind(null, observer, imgNodes))
+})
+
+test('deep src changes', function (t) {
+  t.plan(1)
+  var observer = ImgObserver()
+  var div = d.body.appendChild(d.createElement('div'))
+  var img = div.appendChild(d.createElement('img'))
+  observer.on('changed', function (imgs) {
+    t.equal(imgs[0], img, 'changing src triggers changed event')
+  })
+  img.src = 'test.jpg'
+  t.once('end', cleanup.bind(null, observer, div))
 })
