@@ -6,6 +6,7 @@
   "scripts": {
     "build": "browserify index.js --standalone ImgObserver -o dist/img_observer.js",
     "postbuild": "uglifyjs dist/img_observer.js -c -m -o dist/img_observer.min.js",
+    "preversion": "npm run build",
     "lint": "standard index.js",
     "test": "npm run lint && zuul -- test.js",
     "test:dev": "zuul --local 8080 -- test.js"
