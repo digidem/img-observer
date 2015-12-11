@@ -1,6 +1,8 @@
 ImgObserver
 ========================
 
+[![Sauce Test Status](https://saucelabs.com/browser-matrix/img-observer.svg)](https://saucelabs.com/u/img-observer)
+
 Monitors an HTML document for added or removed `img` nodes, dispatching 'added' and 'removed' events with an array or added or removed `img` tags, and 'changed' events with an array of img tags with a changed `src` attribute.
 
 A previous version of this library was named `document-change-observer` and was originally a more generic wrapper for `MutationObserver`, but for that use [mutation-summary](https://github.com/rafaelw/mutation-summary)

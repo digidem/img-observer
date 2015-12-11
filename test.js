@@ -1,4 +1,4 @@
-var test = require('prova')
+var test = require('tape')
 var EventEmitter = require('events')
 var ImgObserver = require('./')
 
